@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Social Media Analytics Framework Pro - GenZ Edition</title>
+  
+  <!-- Tailwind CSS, Lucide Icons, Chart.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    
+    :root {
+      --bg-dark: #05070c;
+      --card-bg: rgba(12, 17, 29, 0.85);
+      --border-glow: rgba(168, 85, 247, 0.3);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* GenZ Neon Mesh Canvas Background */
+    .bg-genz-mesh {
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(168, 85, 247, 0.18) 0px, transparent 45%),
+        radial-gradient(at 90% 15%, rgba(6, 182, 212, 0.18) 0px, transparent 45%),
+        radial-gradient(at 50% 85%, rgba(236, 72, 153, 0.14) 0px, transparent 50%);
+    }
+
+    /* Shimmer Button */
+    .genz-shimmer {
+      background: linear-gradient(90deg, #ec4899, #a855f7, #3b82f6, #06b6d4, #ec4899);
+      background-size: 300% 100%;
+      animation: genzShimmer 4s infinite linear;
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
+    }
+    @keyframes genzShimmer {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 300% 0%; }
+    }
+
+    /* Glass Bento Cards */
+    .bento-card {
+      position: relative;
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1.5rem;
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .bento-card:hover {
+      border-color: rgba(168, 85, 247, 0.45);
+      transform: translateY(-4px) scale(1.005);
+      box-shadow: 0 25px 60px -10px rgba(168, 85, 247, 0.25);
+    }
+
+    /* Live Pulse Badge */
+    .pulse-dot {
+      position: relative;
+    }
+    .pulse-dot::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 9999px;
+      background: rgba(34, 197, 94, 0.6);
+      animation: pingGlow 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes pingGlow {
+      75%, 100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    /* View Slide Animation */
+    .view-panel {
+      animation: genzSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes genzSlideIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Keybinding Badge */
+    .kbd-badge {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-genz-mesh antialiased selection:bg-pink-500 selection:text-white">
+
+  <!-- Dynamic Particles Canvas -->
+  <canvas id="bg-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+  <!-- Command Palette Modal (Cmd+K) -->
+  <div id="cmd-palette" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xl flex items-start justify-center pt-24 px-4">
+    <div class="max-w-xl w-full bento-card p-4 space-y-3 border-purple-500/40 shadow-2xl">
+      <div class="flex items-center space-x-3 border-b border-slate-800 pb-3">
+        <i data-lucide="search" class="w-5 h-5 text-purple-400"></i>
+        <input id="cmd-input" type="text" placeholder="Type a command or search topic (e.g. 'EV Surge', 'Sentiment', 'KOLs')..." class="w-full bg-transparent border-none text-sm text-white focus:outline-none placeholder:text-slate-500 font-medium">
+        <span class="kbd-badge">ESC</span>
+      </div>
+      <div class="space-y-1 text-xs text-slate-300">
+        <div onclick="switchView('overview'); closeCmdPalette();" class="p-2.5 rounded-xl hover:bg-purple-600/20 hover:text-white cursor-pointer flex items-center justify-between transition">
+          <span class="font-bold">⚡ Go to Overview Dashboard</span>
+          <span class="kbd-badge">Shift + 1</span>
+        </div>
+        <div onclick="switchView('sentiment'); closeCmdPalette();" class="p-2.5 rounded-xl hover:bg-purple-600/20 hover:text-white cursor-pointer flex items-center justify-between transition">
+          <span class="font-bold">🔥 Check Vibe & Sentiment Trajectory</span>
+          <span class="kbd-badge">Shift + 2</span>
+        </div>
+        <div onclick="switchView('trends'); closeCmdPalette();" class="p-2.5 rounded-xl hover:bg-purple-600/20 hover:text-white cursor-pointer flex items-center justify-between transition">
+          <span class="font-bold">🚀 Forecast 24h Trend Volume</span>
+          <span class="kbd-badge">Shift + 4</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top GenZ Header -->
+  <header class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-500 to-cyan-400 p-0.5 shadow-lg shadow-purple-500/30">
+          <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+            <i data-lucide="zap" class="w-5 h-5 text-pink-400"></i>
+          </div>
+        </div>
+        <div>
+          <h1 class="text-base font-extrabold bg-gradient-to-r from-pink-400 via-purple-300 to-cyan-400 bg-clip-text text-transparent">
+            AI Analytics Pro
+          </h1>
+          <p class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">GenZ Social Intel</p>
+        </div>
+      </div>
+
+      <!-- Navigation Bar -->
+      <nav class="hidden md:flex items-center space-x-1 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800/90 shadow-inner">
+        <button onclick="switchView('overview')" id="nav-overview" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg">Overview</button>
+        <button onclick="switchView('sentiment')" id="nav-sentiment" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all">Sentiment</button>
+        <button onclick="switchView('audience')" id="nav-audience" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all">Audience</button>
+        <button onclick="switchView('trends')" id="nav-trends" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all">Trends</button>
+        <button onclick="switchView('network')" id="nav-network" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all">Network</button>
+        <button onclick="switchView('sources')" id="nav-sources" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all">Sources</button>
+        <button onclick="switchView('alerts')" id="nav-alerts" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all">Alerts</button>
+      </nav>
+
+      <!-- Search & Quick Action Buttons -->
+      <div class="flex items-center space-x-2.5">
+        <!-- Cmd+K Quick Search trigger -->
+        <button onclick="openCmdPalette()" class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400 hover:text-white hover:border-slate-700 transition">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-purple-400"></i>
+          <span class="font-medium">Search...</span>
+          <span class="kbd-badge">⌘K</span>
+        </button>
+
+        <!-- Story Mode Button -->
+        <button onclick="runStoryMode()" class="genz-shimmer px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-white flex items-center gap-1">
+          <span>✨ Story Mode</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Filter & Time Range Bar -->
+  <div class="border-b border-slate-800/60 bg-slate-950/40 backdrop-blur-md py-2.5 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-3 text-xs">
+      
+      <!-- Time Range Selection Brush -->
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-400 font-semibold flex items-center gap-1">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-cyan-400"></i> Time Range:
+        </span>
+        <div class="flex items-center bg-slate-900 rounded-xl p-1 border border-slate-800">
+          <button onclick="setTimeRange('1h')" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-white">1H</button>
+          <button onclick="setTimeRange('24h')" class="px-2.5 py-1 rounded-lg font-bold bg-purple-600 text-white shadow">24H</button>
+          <button onclick="setTimeRange('7d')" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-white">7D</button>
+        </div>
+      </div>
+
+      <!-- Vibe Check Indicator Pill -->
+      <div class="flex items-center space-x-2 bg-gradient-to-r from-purple-950/80 to-pink-950/80 border border-purple-800/60 px-3 py-1 rounded-xl shadow-sm">
+        <span class="text-xs">Current Vibe:</span>
+        <span class="font-extrabold text-pink-300 flex items-center gap-1">Hyped 🚀 (+0.82)</span>
+      </div>
+
+      <!-- Privacy Status Badge -->
+      <div class="flex items-center space-x-2 bg-emerald-950/40 border border-emerald-800/50 px-3 py-1 rounded-xl">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+        <span class="text-emerald-300 font-bold">k-Anonymity (k≥10) Enforced</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Interactive Story Mode Banner -->
+  <div id="story-banner" class="hidden bg-gradient-to-r from-purple-900/90 via-pink-900/90 to-slate-900/90 border-b border-pink-500/40 px-4 py-3 z-30">
+    <div class="max-w-7xl mx-auto flex items-center justify-between text-xs">
+      <div class="flex items-center space-x-3">
+        <span class="p-1 rounded-lg bg-pink-500/20 text-pink-300 font-bold border border-pink-500/30">Storyline 1/5</span>
+        <p class="text-slate-100 font-semibold">⚡ Planted Storyline Discovery: Solid State Battery Breakthrough surging across Telegram!</p>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button onclick="nextStoryStep()" class="px-3 py-1 rounded-lg bg-pink-600 text-white font-bold hover:bg-pink-500 transition">Next Step →</button>
+        <button onclick="closeStoryMode()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main GenZ Bento Grid Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 z-10 space-y-6">
+    
+    <!-- 1. OVERVIEW VIEW -->
+    <div id="view-overview" class="view-panel space-y-6">
+      
+      <!-- Bento KPI Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        
+        <div class="bento-card p-4">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold">Total Ingested</span>
+            <i data-lucide="message-square" class="w-4 h-4 text-purple-400"></i>
+          </div>
+          <p id="kpi-posts" class="text-2xl font-extrabold text-white">20,500</p>
+          <span class="text-[10px] text-emerald-400 font-bold mt-1 block">🔥 +14.2% velocity</span>
+        </div>
+
+        <div class="bento-card p-4">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold">Unique Authors</span>
+            <i data-lucide="users" class="w-4 h-4 text-cyan-400"></i>
+          </div>
+          <p id="kpi-authors" class="text-2xl font-extrabold text-white">340</p>
+          <span class="text-[10px] text-cyan-400 font-bold mt-1 block">Salted SHA-256</span>
+        </div>
+
+        <div class="bento-card p-4">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold">Avg Polarity</span>
+            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <p id="kpi-sentiment" class="text-2xl font-extrabold text-emerald-400">+0.24</p>
+          <span class="text-[10px] text-slate-400 mt-1 block">Hyped Stance 🚀</span>
+        </div>
+
+        <div class="bento-card p-4">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold">Top Emotion</span>
+            <i data-lucide="smile" class="w-4 h-4 text-pink-400"></i>
+          </div>
+          <p id="kpi-emotion" class="text-2xl font-extrabold text-pink-400">Excitement</p>
+          <span class="text-[10px] text-pink-300 font-bold mt-1 block">42% of volume</span>
+        </div>
+
+        <div class="bento-card p-4">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold">Top Trend</span>
+            <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i>
+          </div>
+          <p id="kpi-trend" class="text-base font-extrabold text-amber-400 truncate">EV Battery Surge</p>
+          <span class="text-[10px] text-amber-300 font-bold mt-1 block">Z-Score: 2.85</span>
+        </div>
+
+        <div class="bento-card p-4">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-bold">Active Alerts</span>
+            <i data-lucide="bell" class="w-4 h-4 text-red-400"></i>
+          </div>
+          <p id="kpi-alerts" class="text-2xl font-extrabold text-red-400">2</p>
+          <span class="text-[10px] text-red-300 font-bold mt-1 block">1 Critical, 1 Warning</span>
+        </div>
+
+      </div>
+
+      <!-- Bento Main Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Live Social Feed Stream -->
+        <div class="lg:col-span-2 bento-card p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 pulse-dot"></span>
+              <h3 class="font-extrabold text-slate-100 text-sm tracking-tight">Live Social Stream Feed</h3>
+            </div>
+            <span class="text-xs font-mono-code text-purple-400 bg-purple-950/80 px-2.5 py-1 rounded-lg border border-purple-800">48.5 EPS</span>
+          </div>
+
+          <div id="live-feed" class="space-y-3 max-h-[420px] overflow-y-auto pr-1.5">
+            <!-- Feed Items -->
+          </div>
+        </div>
+
+        <!-- Right Side Bento Widgets -->
+        <div class="space-y-6">
+          
+          <div class="bento-card p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+              <h3 class="font-bold text-slate-100 text-sm flex items-center gap-2">
+                <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Burst Topics
+              </h3>
+              <span class="text-[10px] text-amber-400 font-mono-code font-bold">Z-SCORE</span>
+            </div>
+            <div id="mini-trends-list" class="space-y-2.5 text-xs">
+              <!-- JS rendered -->
+            </div>
+          </div>
+
+          <div class="bento-card p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+              <h3 class="font-bold text-slate-100 text-sm flex items-center gap-2">
+                <i data-lucide="shield-alert" class="w-4 h-4 text-red-400"></i> Active Alerts
+              </h3>
+            </div>
+            <div id="mini-alerts-list" class="space-y-2.5 text-xs">
+              <!-- JS rendered -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 2. SENTIMENT VIEW -->
+    <div id="view-sentiment" class="view-panel hidden space-y-6">
+      <div class="bento-card p-6 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div>
+            <h3 class="font-extrabold text-slate-100 text-base">Timeline Vibe Trajectory & Shift Detection</h3>
+            <p class="text-xs text-slate-400">Polared sentiment trajectories with automated shift notifications</p>
+          </div>
+        </div>
+        <div class="h-72 w-full pt-2">
+          <canvas id="sentimentChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. AUDIENCE VIEW -->
+    <div id="view-audience" class="view-panel hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bento-card p-6 space-y-4">
+          <h3 class="font-bold text-slate-100 text-sm border-b border-slate-800/80 pb-3">Age Group Pyramid</h3>
+          <div class="h-60"><canvas id="ageChart"></canvas></div>
+        </div>
+        <div class="bento-card p-6 space-y-4">
+          <h3 class="font-bold text-slate-100 text-sm border-b border-slate-800/80 pb-3">Country Breakdown</h3>
+          <div class="h-60"><canvas id="geoChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. TRENDS VIEW -->
+    <div id="view-trends" class="view-panel hidden space-y-6">
+      <div class="bento-card p-6 space-y-4">
+        <h3 class="font-extrabold text-slate-100 text-base border-b border-slate-800/80 pb-4">24-Hour Predictive Trend Curve</h3>
+        <div class="h-72 w-full pt-2"><canvas id="forecastChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 5. NETWORK VIEW -->
+    <div id="view-network" class="view-panel hidden space-y-6">
+      <div class="bento-card p-6 space-y-4">
+        <h3 class="font-extrabold text-slate-100 text-base border-b border-slate-800/80 pb-4">Network Topology Graph</h3>
+        <div class="w-full h-96 bg-slate-950/90 rounded-2xl border border-slate-800 relative overflow-hidden">
+          <canvas id="network-canvas" class="w-full h-full"></canvas>
+        </div>
+      </div>
+      <div class="bento-card p-6 space-y-4">
+        <h3 class="font-extrabold text-slate-100 text-sm border-b border-slate-800/80 pb-3">Top Key Opinion Leaders (KOLs)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="text-slate-400 bg-slate-900/80 uppercase border-b border-slate-800">
+              <tr><th class="p-3">Rank</th><th class="p-3">Handle</th><th class="p-3">Platform</th><th class="p-3">PageRank</th><th class="p-3">Betweenness</th><th class="p-3">Community</th></tr>
+            </thead>
+            <tbody id="kols-table-body" class="divide-y divide-slate-800/60 text-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. SOURCES VIEW -->
+    <div id="view-sources" class="view-panel hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bento-card p-6 space-y-4 border-l-4 border-l-blue-500">
+          <h4 class="font-bold text-slate-100">X Connector</h4>
+          <p class="text-xs text-slate-400">Replay mode active with pre-seeded data.</p>
+        </div>
+        <div class="bento-card p-6 space-y-4 border-l-4 border-l-cyan-500">
+          <h4 class="font-bold text-slate-100">Telegram Connector</h4>
+          <p class="text-xs text-slate-400">Replay mode active for public channels.</p>
+        </div>
+        <div class="bento-card p-6 space-y-4 border-l-4 border-l-pink-500">
+          <h4 class="font-bold text-slate-100">Meta Adapter</h4>
+          <p class="text-xs text-slate-400">Mock engagement adapter active.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. ALERTS & EXPORT VIEW -->
+    <div id="view-alerts" class="view-panel hidden space-y-6">
+      <div class="bento-card p-6 space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <h3 class="font-extrabold text-slate-100 text-base">Export Dataset & Executive Briefing</h3>
+          <div class="flex space-x-2">
+            <button onclick="triggerExport('json')" class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs">Export JSON</button>
+            <button onclick="triggerExport('csv')" class="px-4 py-2 rounded-xl bg-cyan-600 text-white font-bold text-xs">Export CSV</button>
+          </div>
+        </div>
+        <div class="p-5 bg-slate-900/90 rounded-2xl border border-slate-800 text-xs">
+          <p id="report-summary-text" class="text-slate-300 leading-relaxed">Loading executive briefing...</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    let chartInstances = {};
+    let liveModeActive = true;
+
+    function switchView(viewName) {
+      document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('bg-gradient-to-r', 'from-pink-500', 'to-purple-600', 'text-white', 'shadow-lg');
+        el.classList.add('text-slate-400');
+      });
+
+      const targetView = document.getElementById('view-' + viewName);
+      const targetNav = document.getElementById('nav-' + viewName);
+
+      if (targetView) targetView.classList.remove('hidden');
+      if (targetNav) {
+        targetNav.classList.add('bg-gradient-to-r', 'from-pink-500', 'to-purple-600', 'text-white', 'shadow-lg');
+        targetNav.classList.remove('text-slate-400');
+      }
+
+      if (viewName === 'sentiment') renderSentimentCharts();
+      if (viewName === 'audience') renderAudienceCharts();
+      if (viewName === 'trends') renderForecastChart();
+      if (viewName === 'network') { drawNetworkGraph(); fetchKOLs(); }
+      if (viewName === 'alerts') fetchDailyReport();
+    }
+
+    async function loadData() {
+      try {
+        const overviewRes = await fetch('/overview');
+        const overviewData = await overviewRes.json();
+        if (overviewData && overviewData.kpis) {
+          document.getElementById('kpi-posts').innerText = overviewData.kpis.total_posts.toLocaleString();
+          document.getElementById('kpi-authors').innerText = overviewData.kpis.unique_authors.toLocaleString();
+          document.getElementById('kpi-sentiment').innerText = (overviewData.kpis.avg_sentiment >= 0 ? '+' : '') + overviewData.kpis.avg_sentiment;
+          document.getElementById('kpi-emotion').innerText = overviewData.kpis.top_emotion;
+          document.getElementById('kpi-trend').innerText = overviewData.kpis.top_trend;
+          document.getElementById('kpi-alerts').innerText = overviewData.kpis.active_alerts_count;
+        }
+        const trendsRes = await fetch('/trends');
+        renderMiniTrends(await trendsRes.json());
+        const alertsRes = await fetch('/alerts');
+        renderMiniAlerts(await alertsRes.json());
+      } catch (ex) {}
+    }
+
+    function renderMiniTrends(trends) {
+      const el = document.getElementById('mini-trends-list');
+      if (!el) return;
+      el.innerHTML = trends.slice(0, 4).map((t, idx) => `
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+          <span class="font-bold text-slate-200">${idx+1}. ${t.term}</span>
+          <span class="text-amber-400 font-bold font-mono-code">Z: ${t.z_score}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderMiniAlerts(alerts) {
+      const el = document.getElementById('mini-alerts-list');
+      if (!el) return;
+      el.innerHTML = alerts.map(a => `
+        <div class="p-2.5 rounded-xl bg-red-950/40 border border-red-900 text-red-200">
+          <p class="font-bold">${a.rule_name}</p>
+          <p class="text-[11px] text-red-300/80">${a.message}</p>
+        </div>
+      `).join('');
+    }
+
+    const samplePosts = [
+      { author: 'KOL_75ebee', platform: 'x', text: 'Solid state battery breakthrough reported with +600 mile range! 🚀', pol: '+0.82 Pos' },
+      { author: 'User_47f5de', platform: 'telegram', text: 'Leaked SEC regulatory draft causing crypto dump panic rumors 😱.', pol: '-0.75 Neg' },
+      { author: 'User_a1b2c3', platform: 'reddit', text: 'Open source AGI alignment protocols proposed for safe deployment 🗿.', pol: '+0.65 Pos' }
+    ];
+
+    function startLiveStream() {
+      let idx = 0;
+      setInterval(() => {
+        const feed = document.getElementById('live-feed');
+        if (!feed) return;
+        const item = samplePosts[idx % samplePosts.length];
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-slate-900/90 border border-slate-800 rounded-xl flex items-start justify-between';
+        div.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-950 text-purple-300 uppercase">${item.platform}</span>
+              <span class="text-xs text-slate-400 font-mono-code">${item.author}</span>
+            </div>
+            <p class="text-xs text-slate-200 font-medium">${item.text}</p>
+          </div>
+          <span class="px-2 py-1 rounded text-[10px] font-bold ${item.pol.includes('+') ? 'bg-emerald-950 text-emerald-300' : 'bg-red-950 text-red-300'}">${item.pol}</span>
+        `;
+        feed.prepend(div);
+        if (feed.children.length > 15) feed.removeChild(feed.lastChild);
+        idx++;
+      }, 2500);
+    }
+
+    function renderSentimentCharts() {
+      if (chartInstances.sentiment) return;
+      const ctx = document.getElementById('sentimentChart').getContext('2d');
+      chartInstances.sentiment = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+          datasets: [{ label: 'Vibe Trajectory', data: [0.65, 0.82, -0.40, -0.65, 0.50, 0.78], borderColor: '#ec4899', borderWidth: 3 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function renderAudienceCharts() {
+      if (chartInstances.age) return;
+      const ctx1 = document.getElementById('ageChart').getContext('2d');
+      chartInstances.age = new Chart(ctx1, {
+        type: 'bar',
+        data: { labels: ['18-24', '25-34', '35-44', '45+'], datasets: [{ data: [22, 45, 20, 13], backgroundColor: '#06b6d4' }] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+      const ctx2 = document.getElementById('geoChart').getContext('2d');
+      chartInstances.geo = new Chart(ctx2, {
+        type: 'bar',
+        data: { labels: ['US', 'DE', 'CA', 'IN'], datasets: [{ data: [42, 18, 15, 12], backgroundColor: '#10b981' }] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function renderForecastChart() {
+      if (chartInstances.forecast) return;
+      const ctx = document.getElementById('forecastChart').getContext('2d');
+      chartInstances.forecast = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['+1h', '+4h', '+8h', '+12h', '+16h', '+20h', '+24h'],
+          datasets: [{ label: 'Volume Curve', data: [310, 420, 680, 820, 710, 560, 450], borderColor: '#f59e0b', borderWidth: 3 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function drawNetworkGraph() {
+      const canvas = document.getElementById('network-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath();
+      ctx.arc(canvas.width * 0.3, canvas.height * 0.5, 20, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    async function fetchKOLs() {
+      try {
+        const res = await fetch('/network/kols');
+        const kols = await res.json();
+        document.getElementById('kols-table-body').innerHTML = kols.map(k => `
+          <tr><td class="p-3">#${k.rank}</td><td class="p-3">${k.handle}</td><td class="p-3">${k.platform}</td><td class="p-3">${k.influence_score}</td><td class="p-3">${k.betweenness}</td><td class="p-3">Comm ${k.community}</td></tr>
+        `).join('');
+      } catch (ex) {}
+    }
+
+    async function fetchDailyReport() {
+      try {
+        const res = await fetch('/report/daily');
+        const r = await res.json();
+        document.getElementById('report-summary-text').innerText = r.executive_summary;
+      } catch (ex) {}
+    }
+
+    function openCmdPalette() { document.getElementById('cmd-palette').classList.remove('hidden'); }
+    function closeCmdPalette() { document.getElementById('cmd-palette').classList.add('hidden'); }
+    function runStoryMode() { document.getElementById('story-banner').classList.remove('hidden'); switchView('trends'); }
+    function nextStoryStep() { closeStoryMode(); switchView('overview'); }
+    function closeStoryMode() { document.getElementById('story-banner').classList.add('hidden'); }
+    function triggerExport(fmt) { window.location.href = '/export?format=' + fmt; }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCmdPalette(); }
+      if (e.key === 'Escape') closeCmdPalette();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      startLiveStream();
+    });
+  </script>
+</body>
+</html>
